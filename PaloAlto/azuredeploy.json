@@ -1,0 +1,443 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.13",
+    "parameters": {
+        "vmName": {
+            "defaultValue": "Azure-PAN-01",
+            "type": "String",
+            "metadata": {
+                "description": "Name of VM-Series FW in the Azure portal"
+            }
+        },
+        "storageAccountName": {
+            "defaultValue": "tscpanstorage",
+			"type": "String",
+            "metadata": {
+                "description": "Name of the EXISTING storage account used to store the VM's disks"
+            }
+        },
+        "storageAccountExistingRG": {
+            "defaultValue": "Transit-rg",
+            "type": "String",
+            "metadata": {
+                "description": "Storage Account's Resource Group."
+            }
+        },
+        "fwAvSet": {
+            "defaultValue": "Transit-as",
+            "type": "String",
+            "metadata": {
+                "description": "EXISTING Availability Set name for Firewalls"
+            }
+        },
+        "vmSize": {
+            "defaultValue": "Standard_DS3_v2",
+            "allowedValues": [
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_A4",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "Azure VM size for VM-Series"
+            }
+        },
+        "publicIPType": {
+            "defaultValue": "basic",
+            "allowedValues": [
+                "standard",
+                "basic"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "Use Standard if this VM will be in the backend pool of a Standard SKU Load Balancer"
+            }
+        },
+        "imageVersion": {
+            "defaultValue": "latest",
+            "allowedValues": [
+                "8.1.0",
+                "9.0.0",
+                "9.1.0",
+                "latest"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "PAN OS Version"
+            }
+        },
+        "imageSku": {
+            "defaultValue": "bundle1",
+            "allowedValues": [
+                "byol",
+                "bundle1",
+                "bundle2"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "Firewall License Model"
+            }
+        },
+        "virtualNetworkName": {
+            "defaultValue": "Transit-vnet",
+            "type": "String",
+            "metadata": {
+                "description": "Name of the EXISTING Virtual Network (VNET)"
+            }
+        },
+        "virtualNetworkAddressPrefix": {
+            "defaultValue": "10.99.128.0/17",
+            "type": "String",
+            "metadata": {
+                "description": "EXISTING Virtual network address CIDR"
+            }
+        },
+        "virtualNetworkExistingRGName": {
+            "defaultValue": "Transit-rg",
+            "type": "String",
+            "metadata": {
+                "description": "Name of resource group of EXISTING VNET"
+            }
+        },
+        "subnet0Name": {
+            "defaultValue": "Transit-Mgmt-Subnet",
+            "type": "String",
+            "metadata": {
+                "description": "EXISTING Subnet for Management"
+            }
+        },
+        "subnet1Name": {
+            "defaultValue": "Transit-Public-subnet",
+            "type": "String",
+            "metadata": {
+                "description": "Public EXISTING Subnet"
+            }
+        },
+        "subnet2Name": {
+            "defaultValue": "Transit-Private-subnet",
+            "type": "String",
+            "metadata": {
+                "description": "Private EXISTING Subnet"
+            }
+        },
+		"subnet3Name": {
+            "defaultValue": "Transit-DMZ-subnet",
+            "type": "String",
+            "metadata": {
+                "description": "Private EXISTING Subnet"
+            }
+        },
+        "subnet0Prefix": {
+            "defaultValue": "10.99.255.0/24",
+            "type": "String",
+            "metadata": {
+                "description": "EXISTING Management subnet CIDR"
+            }
+        },
+        "subnet1Prefix": {
+            "defaultValue": "10.99.254.0/24",
+            "type": "String",
+            "metadata": {
+                "description": "EXISTING Public subnet CIDR"
+            }
+        },
+        "subnet2Prefix": {
+            "defaultValue": "10.99.253.0/24",
+            "type": "String",
+            "metadata": {
+                "description": "EXISTING Private subnet CIDR"
+            }
+        },
+		 "subnet3Prefix": {
+            "defaultValue": "10.99.252.0/24",
+            "type": "String",
+            "metadata": {
+                "description": "EXISTING Private subnet CIDR"
+            }
+        },
+        "subnet0StartAddress": {
+            "defaultValue": "10.99.255.4",
+            "type": "String",
+            "metadata": {
+                "description": "Management subnet static address"
+            }
+        },
+        "subnet1StartAddress": {
+            "defaultValue": "10.99.254.4",
+            "type": "String",
+            "metadata": {
+                "description": "Public subnet static address"
+            }
+        },
+        "subnet2StartAddress": {
+            "defaultValue": "10.99.253.4",
+            "type": "String",
+            "metadata": {
+                "description": "Private subnet static address"
+            }
+        },
+		 "subnet3StartAddress": {
+            "defaultValue": "10.99.252.4",
+            "type": "String",
+            "metadata": {
+                "description": "Private subnet static address"
+            }
+        },
+        "adminUsername": {
+            "defaultValue": "admin",
+            "type": "String",
+            "metadata": {
+                "description": "Username of the administrator account of VM-Series"
+            }
+        },
+        "adminPassword": {
+            "defaultValue": "Ch@ng3Me!@#",
+            "defaultValue": "",
+            "type": "SecureString",
+            "metadata": {
+                "description": "Password for the administrator account of VM-Series"
+            }
+        },
+        "publicIPAddressName": {
+			"defaultValue": "tsc-az-pan01-mgmt",
+            "type": "String",
+            "metadata": {
+                "description": "Name of FW Management Public Address"
+            }
+        },
+        "nsgName": {
+            "defaultValue": "",
+            "type": "String",
+            "metadata": {
+                "description": "Name of existing Network Security Group for MGMT FW interface"
+            }
+        }
+    },
+    "variables": {
+        "apiVersion": "2015-06-15",
+        "imagePublisher": "paloaltonetworks",
+        "imageOffer": "vmseries1",
+        "nicName": "[concat(parameters('vmName'), '-eth')]",
+        "vnetID": "[resourceId(parameters('virtualNetworkExistingRGName'),concat('Microsoft.Network','/','virtualNetworks'),parameters('virtualNetworkName'))]",
+        "subnet0Ref": "[concat(variables('vnetID'),'/subnets/',parameters('subnet0Name'))]",
+        "subnet1Ref": "[concat(variables('vnetID'),'/subnets/',parameters('subnet1Name'))]",
+        "subnet2Ref": "[concat(variables('vnetID'),'/subnets/',parameters('subnet2Name'))]",
+		"subnet3Ref": "[concat(variables('vnetID'),'/subnets/',parameters('subnet3Name'))]",
+        "publicIPAddressType": "Dynamic",
+        "subnets": [
+            {
+                "name": "[parameters('subnet0Name')]",
+                "properties": {
+                    "addressPrefix": "[parameters('subnet0Prefix')]",
+                    "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
+                    }
+                }
+            },
+            {
+                "name": "[parameters('subnet1Name')]",
+                "properties": {
+                    "addressPrefix": "[parameters('subnet1Prefix')]"
+                }
+            },
+            {
+                "name": "[parameters('subnet2Name')]",
+                "properties": {
+                    "addressPrefix": "[parameters('subnet2Prefix')]"
+                }
+            },
+			{
+                "name": "[parameters('subnet3Name')]",
+                "properties": {
+                    "addressPrefix": "[parameters('subnet3Prefix')]"
+                }
+            }
+        ],
+        "storageAccountId": "[resourceId(parameters('storageAccountExistingRG'),'Microsoft.Storage/StorageAccounts',parameters('storageAccountName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2017-08-01",
+            "name": "[parameters('publicIPAddressName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('publicIPType')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('publicIPAddressName')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2015-06-15",
+            "name": "[concat(variables('nicName'), '0')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig-mgmt",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('subnet0StartAddress')]",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName'))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('subnet0Ref')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2015-06-15",
+            "name": "[concat(variables('nicName'), '1')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "properties": {
+                "enableIPForwarding": true,
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig-outside",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('subnet1StartAddress')]",
+                            "subnet": {
+                                "id": "[variables('subnet1Ref')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2015-06-15",
+            "name": "[concat(variables('nicName'), '2')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "enableIPForwarding": true,
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig-inside",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('subnet2StartAddress')]",
+                            "subnet": {
+                                "id": "[variables('subnet2Ref')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+		{
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2015-06-15",
+            "name": "[concat(variables('nicName'), '3')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "enableIPForwarding": true,
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig-DMZ",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('subnet3StartAddress')]",
+                            "subnet": {
+                                "id": "[variables('subnet3Ref')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "[variables('apiVersion')]",
+            "name": "[parameters('vmName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), '0')]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), '1')]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), '2')]",
+				"[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), '3')]"
+            ],
+            "plan": {
+                "name": "[parameters('imageSku')]",
+                "product": "[variables('imageOffer')]",
+                "publisher": "[variables('imagePublisher')]"
+            },
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('fwAvSet'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('vmName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('imagePublisher')]",
+                        "offer": "[variables('imageOffer')]",
+                        "sku": "[parameters('imageSku')]",
+                        "version": "[parameters('imageVersion')]"
+                    },
+                    "osDisk": {
+                        "name": "osdisk",
+                        "vhd": {
+                            "uri": "[concat('http://', parameters('storageAccountName'), '.blob.core.windows.net/vhds/', parameters('vmName'), '-', variables('imageOffer'), '-', parameters('imageSku'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'),'0'))]",
+                            "properties": {
+                                "primary": true
+                            }
+                        },
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'),'1'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        },
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'),'2'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        },
+						{
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicName'),'3'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
