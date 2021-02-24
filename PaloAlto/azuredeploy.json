@@ -201,13 +201,20 @@
                 "description": "Password for the administrator account of VM-Series"
             }
         },
-        "publicIPAddressName": {
+        "publicIPAddressNameMgmt": {
 	    "defaultValue": "tsc-az-pan01-mgmt",
             "type": "String",
             "metadata": {
                 "description": "Name of FW Management Public Address"
             }
         },
+	"publicIPAddressNameEth1": {
+	    "defaultValue": "tsc-az-pan01-eth1",
+            "type": "String",
+            "metadata": {
+                "description": "Name of FW eth1 Public Address"
+            }
+        },    
         "nsgName": {
             "defaultValue": "Transit-Mgmt-NSG",
             "type": "String",
@@ -262,7 +269,7 @@
         {
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2017-08-01",
-            "name": "[parameters('publicIPAddressName')]",
+            "name": "[parameters('publicIPAddressNameMgmt')]",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "[parameters('publicIPType')]"
@@ -270,17 +277,32 @@
             "properties": {
                 "publicIPAllocationMethod": "Static",
                 "dnsSettings": {
-                    "domainNameLabel": "[parameters('publicIPAddressName')]"
+                    "domainNameLabel": "[parameters('publicIPAddressNameMgmt')]"
                 }
             }
         },
+	{
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2017-08-01",
+            "name": "[parameters('publicIPAddressNameEth1')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('publicIPType')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('publicIPAddressNameEth1')]"
+                }
+            }
+        },    
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2015-06-15",
             "name": "[concat(variables('nicName'), '0')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName'))]"
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressNameMgmt'))]"
             ],
             "properties": {
                 "ipConfigurations": [
@@ -290,7 +312,7 @@
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('subnet0StartAddress')]",
                             "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName'))]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressNameMgmt'))]"
                             },
                             "subnet": {
                                 "id": "[variables('subnet0Ref')]"
@@ -305,7 +327,9 @@
             "apiVersion": "2015-06-15",
             "name": "[concat(variables('nicName'), '1')]",
             "location": "[resourceGroup().location]",
-            "dependsOn": [],
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressNameEth1'))]"
+            ],
             "properties": {
                 "enableIPForwarding": true,
                 "ipConfigurations": [
@@ -314,6 +338,9 @@
                         "properties": {
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('subnet1StartAddress')]",
+			    "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressNameEth1'))]"
+                            },
                             "subnet": {
                                 "id": "[variables('subnet1Ref')]"
                             }
