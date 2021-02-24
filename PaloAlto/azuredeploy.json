@@ -188,7 +188,7 @@
             }
         },
         "adminUsername": {
-            "defaultValue": "admin",
+            "defaultValue": "panadmin",
             "type": "String",
             "metadata": {
                 "description": "Username of the administrator account of VM-Series"
