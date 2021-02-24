@@ -203,14 +203,14 @@
             }
         },
         "publicIPAddressName": {
-			"defaultValue": "tsc-az-pan01-mgmt",
+	    "defaultValue": "tsc-az-pan01-mgmt",
             "type": "String",
             "metadata": {
                 "description": "Name of FW Management Public Address"
             }
         },
         "nsgName": {
-            "defaultValue": "",
+            "defaultValue": "Transit-Mgmt-NSG",
             "type": "String",
             "metadata": {
                 "description": "Name of existing Network Security Group for MGMT FW interface"
