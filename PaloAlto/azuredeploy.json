@@ -196,7 +196,7 @@
         },
         "adminPassword": {
             "defaultValue": "Ch@ng3Me!@#",
-            "type": "String",
+            "type": "secureString",
             "metadata": {
                 "description": "Password for the administrator account of VM-Series"
             }
