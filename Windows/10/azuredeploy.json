@@ -15,61 +15,30 @@
         "description": "Password for the Virtual Machine."
       }
     },
-    "dnsLabelPrefix": {
-      "type": "string",
-      "defaultValue": "[toLower(concat(parameters('vmName'),'-', uniqueString(resourceGroup().id, parameters('vmName'))))]",
-      "metadata": {
-        "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
-      }
-    },
-    "publicIpName": {
-      "type": "string",
-      "defaultValue": "myPublicIP",
-      "metadata": {
-        "description": "Name for the Public IP used to access the Virtual Machine."
-      }
-    },
-    "publicIPAllocationMethod": {
-      "type": "string",
-      "defaultValue": "Dynamic",
-      "allowedValues": [
-        "Dynamic",
-        "Static"
-      ],
-      "metadata": {
-        "description": "Allocation method for the Public IP used to access the Virtual Machine."
-      }
-    },
-    "publicIpSku": {
-      "type": "string",
-      "defaultValue": "Basic",
-      "allowedValues": [
-        "Basic",
-        "Standard"
-      ],
-      "metadata": {
-        "description": "SKU for the Public IP used to access the Virtual Machine."
-      }
-    },
+    
 
     "OSVersion": {
       "type": "string",
-      "defaultValue": "2019-Datacenter",
+      "defaultValue": "20h2-pro",
       "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "2016-Nano-Server",
-        "2016-Datacenter-with-Containers",
-        "2016-Datacenter",
-        "2019-Datacenter",
-        "2019-Datacenter-Core",
-        "2019-Datacenter-Core-smalldisk",
-        "2019-Datacenter-Core-with-Containers",
-        "2019-Datacenter-Core-with-Containers-smalldisk",
-        "2019-Datacenter-smalldisk",
-        "2019-Datacenter-with-Containers",
-        "2019-Datacenter-with-Containers-smalldisk"
+        "20h1-ent",
+        "20h1-ent-g2",
+        "20h1-entn",
+        "20h1-entn-g2",
+        "20h1-evd",
+        "20h1-pro",
+        "20h1-pro-g2",
+        "20h1-pron",
+        "20h1-pron-g2",
+        "20h2-ent",
+        "20h2-ent-g2",
+        "20h2-entn",
+        "20h2-entn-g2",
+        "20h2-evd",
+        "20h2-pro",
+        "20h2-pro-g2",
+        "20h2-pron",
+        "20h2-pron-g2"
       ],
       "metadata": {
         "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
@@ -105,7 +74,7 @@
     "subnetPrefix": "10.0.0.0/24",
     "virtualNetworkName": "MyVNET",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
-    "networkSecurityGroupName": "default-NSG"
+    "networkSecurityGroupName": "Allow-All-"
   },
   "resources": [
     {
@@ -118,21 +87,6 @@
       },
       "kind": "Storage",
       "properties": {}
-    },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "apiVersion": "2020-06-01",
-      "name": "[parameters('publicIPName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[parameters('publicIpSku')]"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "[parameters('publicIPAllocationMethod')]",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsLabelPrefix')]"
-        }
-      }
     },
     {
       "type": "Microsoft.Network/networkSecurityGroups",
@@ -190,7 +144,6 @@
       "name": "[variables('nicName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPName'))]",
         "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
       ],
       "properties": {
@@ -199,9 +152,6 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPName'))]"
-              },
               "subnet": {
                 "id": "[variables('subnetRef')]"
               }
@@ -230,8 +180,8 @@
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "MicrosoftWindowsServer",
-            "offer": "WindowsServer",
+            "publisher": "MicrosoftWindowsDesktop",
+            "offer": "Windows-10",
             "sku": "[parameters('OSVersion')]",
             "version": "latest"
           },
@@ -243,7 +193,7 @@
           },
           "dataDisks": [
             {
-              "diskSizeGB": 1023,
+              "diskSizeGB": 50,
               "lun": 0,
               "createOption": "Empty"
             }
@@ -265,10 +215,4 @@
       }
     }
   ],
-  "outputs": {
-    "hostname": {
-      "type": "string",
-      "value": "[reference(parameters('publicIPName')).dnsSettings.fqdn]"
-    }
-  }
 }
