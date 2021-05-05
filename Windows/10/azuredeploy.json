@@ -74,7 +74,7 @@
     "subnetPrefix": "10.0.0.0/24",
     "virtualNetworkName": "MyVNET",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
-    "networkSecurityGroupName": "Allow-All-"
+    "networkSecurityGroupName": "Allow-All"
   },
   "resources": [
     {
