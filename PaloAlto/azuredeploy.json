@@ -71,7 +71,7 @@
             }
         },
         "imageSku": {
-            "defaultValue": "bundle1",
+            "defaultValue": "bundle2",
             "allowedValues": [
                 "byol",
                 "bundle1",
