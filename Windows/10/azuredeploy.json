@@ -94,7 +94,6 @@
       "location": "[parameters('location')]",
       "properties": {
         "securityRules": [
-          }
         ]
       }
     },
