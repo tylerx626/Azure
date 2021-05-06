@@ -188,14 +188,12 @@
             }
         },
         "adminUsername": {
-            "defaultValue": "tylerx626",
             "type": "String",
             "metadata": {
                 "description": "Username of the administrator account of VM-Series"
             }
         },
         "adminPassword": {
-            "defaultValue": "Ch@ng3Me!@#",
             "type": "secureString",
             "metadata": {
                 "description": "Password for the administrator account of VM-Series"
