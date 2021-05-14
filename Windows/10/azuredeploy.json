@@ -68,9 +68,9 @@
   "variables": {
     "storageAccountName": "[concat('bootdiags', uniquestring(resourceGroup().id))]",
     "nicName": "myVMNic",
-    "addressPrefix": "10.0.0.0/16",
+    "addressPrefix": "10.200.0.0/16",
     "subnetName": "Subnet",
-    "subnetPrefix": "10.0.0.0/24",
+    "subnetPrefix": "10.200.0.0/24",
     "virtualNetworkName": "MyVNET",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
     "networkSecurityGroupName": "Allow-All"
