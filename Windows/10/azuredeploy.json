@@ -68,10 +68,10 @@
   "variables": {
     "storageAccountName": "[concat('bootdiags', uniquestring(resourceGroup().id))]",
     "nicName": "myVMNic",
-    "addressPrefix": "10.99.1.0/24",
-    "subnetName": "Workstation-Subnet",
-    "subnetPrefix": "10.99.1.0/24",
-    "virtualNetworkName": "Workstation-vnet",
+    "addressPrefix": "10.0.0.0/16",
+    "subnetName": "Subnet",
+    "subnetPrefix": "10.0.0.0/24",
+    "virtualNetworkName": "MyVNET",
     "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
     "networkSecurityGroupName": "Allow-All"
   },
@@ -92,6 +92,23 @@
       "apiVersion": "2020-06-01",
       "name": "[variables('networkSecurityGroupName')]",
       "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-3389",
+            "properties": {
+              "priority": 1000,
+              "access": "Allow",
+              "direction": "Inbound",
+              "destinationPortRange": "3389",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      }
     },
     {
       "type": "Microsoft.Network/virtualNetworks",
